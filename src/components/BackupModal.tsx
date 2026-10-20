@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { X, Download, Upload, ShieldCheck, Check, KeyRound, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Download, Upload, ShieldCheck, Check, KeyRound, AlertCircle, ScanFace, Fingerprint } from 'lucide-react';
 import { exportVaultEncryptedFile, importVaultEncryptedFile, changeMasterPin } from '../services/storage';
 import { triggerHaptic } from '../services/crypto';
+import { 
+  isBiometricsAvailable, 
+  isBiometricsEnrolled, 
+  getBiometricLabel, 
+  registerBiometrics, 
+  removeBiometrics 
+} from '../services/biometrics';
 import type { WalletCard } from '../types/wallet';
 
 interface BackupModalProps {
@@ -25,6 +32,49 @@ export const BackupModal: React.FC<BackupModalProps> = ({
   const [pinChanged, setPinChanged] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [bioAvailable, setBioAvailable] = useState(false);
+  const [bioEnrolled, setBioEnrolled] = useState(false);
+  const [bioLabel, setBioLabel] = useState('Face ID');
+  const [bioLoading, setBioLoading] = useState(false);
+  const [bioMessage, setBioMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function checkBio() {
+      const avail = await isBiometricsAvailable();
+      const enrolled = isBiometricsEnrolled();
+      setBioAvailable(avail);
+      setBioEnrolled(enrolled);
+      setBioLabel(getBiometricLabel());
+    }
+    checkBio();
+  }, []);
+
+  const handleToggleBiometrics = async () => {
+    setBioLoading(true);
+    setBioMessage(null);
+    triggerHaptic('medium');
+
+    if (bioEnrolled) {
+      removeBiometrics();
+      setBioEnrolled(false);
+      setBioMessage('Biometric unlock disabled');
+      onTriggerAlert('Biometrics Disabled', 'Unlock with PIN only', 'info');
+      setBioLoading(false);
+      return;
+    }
+
+    const pinToUse = currentPinInput || pin;
+    const res = await registerBiometrics(pinToUse);
+    if (res.success) {
+      setBioEnrolled(true);
+      setBioMessage(`${bioLabel} successfully registered & active!`);
+      onTriggerAlert(`${bioLabel} Enabled`, 'Fast native biometric unlock', 'success');
+    } else {
+      triggerHaptic('error');
+      setBioMessage(res.error || 'Failed to enroll biometrics');
+    }
+    setBioLoading(false);
+  };
 
   const handleExport = async () => {
     try {
@@ -231,6 +281,59 @@ export const BackupModal: React.FC<BackupModalProps> = ({
               </button>
             </div>
           </form>
+
+          {/* Hardware Biometrics (Face ID / Touch ID) Section */}
+          <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-white font-semibold text-xs font-mono">
+                {bioLabel === 'Touch ID' ? (
+                  <Fingerprint className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <ScanFace className="w-4 h-4 text-emerald-400" />
+                )}
+                <span>Hardware {bioLabel}</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${bioEnrolled ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-white/10 text-white/50'}`}>
+                {bioEnrolled ? 'Active' : 'Disabled'}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-white/60 leading-relaxed font-light">
+              Unlock your vault with Apple {bioLabel} or Touch ID sensor using on-device WebAuthn Secure Enclave.
+            </p>
+
+            {bioAvailable ? (
+              <button
+                type="button"
+                onClick={handleToggleBiometrics}
+                disabled={bioLoading}
+                className={`w-full py-2.5 px-3 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center space-x-2 border active:scale-98 ${
+                  bioEnrolled
+                    ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/30'
+                    : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.15)]'
+                }`}
+              >
+                {bioLabel === 'Touch ID' ? <Fingerprint className="w-4 h-4" /> : <ScanFace className="w-4 h-4" />}
+                <span>
+                  {bioLoading
+                    ? 'Please authenticate on device...'
+                    : bioEnrolled
+                    ? `Disable ${bioLabel}`
+                    : `Enable ${bioLabel}`}
+                </span>
+              </button>
+            ) : (
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-mono text-white/40">
+                Hardware biometrics requires HTTPS or is not supported by this browser.
+              </div>
+            )}
+
+            {bioMessage && (
+              <p className="text-[10px] font-mono text-emerald-400">
+                {bioMessage}
+              </p>
+            )}
+          </div>
 
           {/* Export section */}
           <div className="space-y-2">

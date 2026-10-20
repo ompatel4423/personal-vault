@@ -1,4 +1,5 @@
 import type { WalletCard } from '../types/wallet';
+import { createSamplePdf } from './pdfHelper';
 
 export const INITIAL_CARDS: WalletCard[] = [
   // 1. AADHAAR CARD
@@ -25,6 +26,27 @@ export const INITIAL_CARDS: WalletCard[] = [
       'Issue Date': '12/03/2018',
     },
     sensitiveKeys: ['Aadhaar Number', 'VID'],
+    documents: [
+      {
+        id: 'doc-aadhaar-official',
+        name: 'e-Aadhaar_Official_Signed.pdf',
+        size: '348 KB',
+        type: 'pdf',
+        dataUrl: createSamplePdf(
+          'UNIQUE IDENTIFICATION AUTHORITY OF INDIA',
+          'Official Electronic Aadhaar Card • Govt of India',
+          [
+            'Aadhaar Number: 4829 1092 8472',
+            'Full Name: AARAV SHARMA',
+            'DOB: 14/08/1998 | Gender: MALE',
+            'VID: 9182 3491 0029 1847',
+            'Address: H.No 42, Green Park Avenue, New Delhi - 110016',
+            'Digital Signature: Validated by UIDAI Sub-CA',
+          ]
+        ),
+        uploadedAt: new Date().toISOString(),
+      },
+    ],
     favorite: true,
     createdAt: new Date().toISOString(),
   },
@@ -108,6 +130,27 @@ export const INITIAL_CARDS: WalletCard[] = [
       'Organ Donor': 'YES',
     },
     sensitiveKeys: ['Licence No'],
+    documents: [
+      {
+        id: 'doc-dl-official',
+        name: 'Driving_Licence_DL04.pdf',
+        size: '280 KB',
+        type: 'pdf',
+        dataUrl: createSamplePdf(
+          'MINISTRY OF ROAD TRANSPORT & HIGHWAYS',
+          'Official Driving Licence Certificate • Form 7',
+          [
+            'Licence No: DL-0420190089123',
+            'Name: AARAV SHARMA',
+            'Valid Till: 13/08/2038 | Blood Group: O +ve',
+            'Authorised: MCWG Motorcycle, LMV Car',
+            'Issuing Authority: RTO SOUTH WEST DELHI DL-04',
+            'Organ Donor Status: YES',
+          ]
+        ),
+        uploadedAt: new Date().toISOString(),
+      },
+    ],
     favorite: false,
     createdAt: new Date().toISOString(),
   },

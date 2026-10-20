@@ -20,6 +20,15 @@ export type CardType =
   | 'address'
   | 'custom';
 
+export interface VaultDocument {
+  id: string;
+  name: string;
+  size: string; // e.g., "420 KB"
+  type: 'pdf' | 'document';
+  dataUrl: string; // Base64 data URL
+  uploadedAt: string;
+}
+
 export interface WalletCard {
   id: string;
   type: CardType;
@@ -40,6 +49,7 @@ export interface WalletCard {
     type: 'image' | 'pdf';
     dataUrl: string;
   }[];
+  documents?: VaultDocument[]; // Encrypted attached PDF documents (e-Aadhaar, RC, Insurance)
   frontImage?: string; // Optional real front card photo (base64)
   backImage?: string;  // Optional real back card photo (base64)
   favorite?: boolean;

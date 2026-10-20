@@ -2,24 +2,28 @@ import React, { useState } from 'react';
 import { 
   X, 
   Copy, 
-  Check,
+  Check, 
   RotateCw, 
   Eye, 
   EyeOff, 
   Trash2, 
-  QrCode,
-  PenTool,
-  PlusCircle,
-  Train,
-  Camera,
-  ImageIcon,
-  Edit3,
-  Plus,
-  MapPin
+  QrCode, 
+  PenTool, 
+  PlusCircle, 
+  Train, 
+  Camera, 
+  ImageIcon, 
+  Edit3, 
+  Plus, 
+  MapPin,
+  FileText,
+  Upload
 } from 'lucide-react';
-import type { WalletCard } from '../types/wallet';
+import type { WalletCard, VaultDocument } from '../types/wallet';
 import { triggerHaptic } from '../services/crypto';
 import { compressImage } from '../services/image';
+import { formatFileSize } from '../services/pdfHelper';
+import { PdfViewerModal } from './PdfViewerModal';
 
 interface CardDetailModalProps {
   card: WalletCard;
@@ -41,6 +45,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [isFlipped, setIsFlipped] = useState(false);
   const [unmaskedKeys, setUnmaskedKeys] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [activePdf, setActivePdf] = useState<VaultDocument | null>(null);
 
   // Edit Card Details State
   const [isEditing, setIsEditing] = useState(false);
@@ -201,6 +206,54 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     };
     onUpdateCard(updated);
     onTriggerAlert('Metro Card Recharged • +₹200', `Balance: ₹ ${nextVal.toFixed(2)}`, 'success');
+  };
+
+  // Official PDF Documents Vault Actions
+  const handleUploadPdf = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      onTriggerAlert('Invalid File', 'Only PDF documents are supported', 'warning');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      const sizeStr = formatFileSize(file.size);
+      const newDoc: VaultDocument = {
+        id: `doc-${Date.now()}`,
+        name: file.name,
+        size: sizeStr,
+        type: 'pdf',
+        dataUrl,
+        uploadedAt: new Date().toISOString(),
+      };
+
+      const updatedDocs = [...(card.documents || []), newDoc];
+      const updatedCard: WalletCard = {
+        ...card,
+        documents: updatedDocs,
+      };
+
+      onUpdateCard(updatedCard);
+      triggerHaptic('success');
+      onTriggerAlert('PDF Attached', `${file.name} (${sizeStr})`, 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDeletePdf = (docId: string) => {
+    triggerHaptic('error');
+    if (!window.confirm('Remove this attached PDF document?')) return;
+    const updatedDocs = (card.documents || []).filter((d) => d.id !== docId);
+    const updatedCard: WalletCard = {
+      ...card,
+      documents: updatedDocs,
+    };
+    onUpdateCard(updatedCard);
+    onTriggerAlert('Document Removed', 'PDF deleted from card', 'info');
   };
 
   return (
@@ -710,6 +763,86 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             </div>
           )}
 
+          {/* ================= OFFICIAL PDF DOCUMENTS VAULT ================= */}
+          <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-white/90">
+                  Official PDF Documents
+                </span>
+                {card.documents && card.documents.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-semibold border border-emerald-500/30">
+                    {card.documents.length}
+                  </span>
+                )}
+              </div>
+
+              {/* Upload PDF action button */}
+              <label className="cursor-pointer flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-xs font-mono text-emerald-400 border border-white/10 transition-all">
+                <Upload className="w-3.5 h-3.5" />
+                <span>+ Attach PDF</span>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleUploadPdf}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Document list */}
+            {card.documents && card.documents.length > 0 ? (
+              <div className="space-y-2">
+                {card.documents.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/[0.08] border border-white/10 transition-all text-left group"
+                  >
+                    <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-mono font-medium text-white truncate max-w-[150px] sm:max-w-[240px]">
+                          {doc.name}
+                        </p>
+                        <p className="text-[10px] font-mono text-white/50">
+                          {doc.size} • AES-256 Encrypted
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-1 shrink-0">
+                      <button
+                        onClick={() => setActivePdf(doc)}
+                        type="button"
+                        title="Preview / Open PDF"
+                        className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-mono active:scale-95 transition-all flex items-center space-x-1 font-semibold"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>View</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeletePdf(doc.id)}
+                        type="button"
+                        title="Delete PDF"
+                        className="p-1.5 rounded-lg hover:bg-rose-500/20 text-white/40 hover:text-rose-400 active:scale-95 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-4 px-3 rounded-xl border border-dashed border-white/10 text-center flex flex-col items-center justify-center space-y-1 bg-white/[0.01]">
+                <p className="text-xs font-mono text-white/50">No official PDF document attached</p>
+                <p className="text-[10px] font-mono text-white/30">Attach e-Aadhaar, RC, Insurance or Marksheet PDF</p>
+              </div>
+            )}
+          </div>
+
           {/* Detailed Data Fields */}
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
@@ -932,6 +1065,15 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Full-screen PDF Document Viewer Modal */}
+      {activePdf && (
+        <PdfViewerModal
+          document={activePdf}
+          onClose={() => setActivePdf(null)}
+          onTriggerAlert={onTriggerAlert}
+        />
+      )}
     </div>
   );
 };
