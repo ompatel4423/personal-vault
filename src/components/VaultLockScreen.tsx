@@ -65,7 +65,7 @@ export const VaultLockScreen: React.FC<VaultLockScreenProps> = ({
   return (
     <div 
       className="relative z-20 flex flex-col items-center justify-between min-h-screen w-full max-w-md mx-auto px-6 pb-12 select-none"
-      style={{ paddingTop: 'max(env(safe-area-inset-top, 24px) + 40px, 115px)' }}
+      style={{ paddingTop: 'max(env(safe-area-inset-top, 24px) + 8px, 75px)' }}
     >
       {/* Top Header */}
       <div className="flex flex-col items-center text-center space-y-3">

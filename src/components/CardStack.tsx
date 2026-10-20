@@ -10,7 +10,8 @@ import {
   Train, 
   Award, 
   Camera, 
-  PenTool 
+  PenTool,
+  MapPin
 } from 'lucide-react';
 import type { WalletCard } from '../types/wallet';
 import { MorphingCardStack, type CardData } from '@/components/ui/morphing-card-stack';
@@ -54,6 +55,8 @@ export const CardStack: React.FC<CardStackProps> = ({
         return <Camera className="h-5 w-5 text-slate-300" />;
       case 'signature':
         return <PenTool className="h-5 w-5 text-violet-400" />;
+      case 'address':
+        return <MapPin className="h-5 w-5 text-emerald-400" />;
       default:
         return <Sparkles className="h-5 w-5 text-emerald-400" />;
     }
@@ -61,6 +64,7 @@ export const CardStack: React.FC<CardStackProps> = ({
 
   const morphingCards: CardData[] = cards.map((c) => {
     const summary =
+      c.details['City'] ? `${c.details['Flat / House No'] || ''}, ${c.details['City']}` :
       c.details['Aadhaar Number'] ||
       c.details['Passport No'] ||
       c.details['Card Number'] ||

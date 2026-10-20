@@ -165,6 +165,25 @@ const TEMPLATES: Record<
     },
     sensitiveKeys: [],
   },
+  address: {
+    category: 'address',
+    title: 'Saved Address',
+    subtitle: 'Residential / Work / Delivery',
+    gradient: 'from-[#065f46] via-[#047857] to-[#022c22]',
+    primary: '#047857',
+    details: {
+      'Label / Type': 'HOME',
+      'Full Name / Contact': '',
+      'Flat / House No': '',
+      'Street / Society / Area': '',
+      'Landmark': '',
+      'City': '',
+      'State': '',
+      'Pincode / ZIP': '',
+      'Phone Number': '',
+    },
+    sensitiveKeys: [],
+  },
   custom: {
     category: 'identity',
     title: 'Custom Card / Document',
@@ -261,18 +280,18 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200"
     >
       <div 
-        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[32px] max-h-[calc(100dvh-100px)] sm:max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[32px] max-h-[calc(100dvh-65px)] sm:max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
         style={{
-          marginTop: 'max(env(safe-area-inset-top, 24px) + 40px, 100px)',
+          marginTop: 'max(env(safe-area-inset-top, 24px) + 10px, 65px)',
         }}
       >
         {/* Grab Handle for iOS feel */}
-        <div className="w-full flex justify-center pt-5 pb-2 sm:hidden">
+        <div className="w-full flex justify-center pt-3.5 pb-1 sm:hidden">
           <div className="w-12 h-1.5 rounded-full bg-white/25" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-3 pb-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 pt-3 pb-3 border-b border-white/10">
           <div className="flex items-center space-x-2.5 min-w-0 pr-3">
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
               <Plus className="w-4 h-4 text-emerald-400" />
@@ -305,6 +324,7 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
             <div className="flex flex-wrap gap-2">
               {(
                 [
+                  ['address', 'Address (Home/Work)'],
                   ['bank_card', 'Bank Card'],
                   ['aadhaar', 'Aadhaar Card'],
                   ['passport', 'Passport'],

@@ -38,6 +38,7 @@ const WALLET_TAGS: Tag[] = [
   { id: 'marksheet', label: 'Marksheets' },
   { id: 'signature', label: 'Signature' },
   { id: 'passport_photo', label: 'Photo' },
+  { id: 'address', label: 'Addresses' },
 ];
 
 export default function App() {

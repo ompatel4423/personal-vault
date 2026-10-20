@@ -14,7 +14,8 @@ import {
   Camera,
   ImageIcon,
   Edit3,
-  Plus
+  Plus,
+  MapPin
 } from 'lucide-react';
 import type { WalletCard } from '../types/wallet';
 import { triggerHaptic } from '../services/crypto';
@@ -205,48 +206,28 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[32px] max-h-[calc(100dvh-100px)] sm:max-h-[90vh] flex flex-col overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.8)]"
+        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[32px] max-h-[calc(100dvh-65px)] sm:max-h-[92vh] flex flex-col overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.8)]"
         style={{
-          marginTop: 'max(env(safe-area-inset-top, 24px) + 40px, 100px)',
+          marginTop: 'max(env(safe-area-inset-top, 24px) + 10px, 65px)',
         }}
       >
-        {/* Grab Handle with safe top spacing to prevent Dynamic Island blur */}
-        <div className="w-full flex justify-center pt-5 pb-2 sm:hidden">
+        {/* Grab Handle */}
+        <div className="w-full flex justify-center pt-3.5 pb-1 sm:hidden">
           <div className="w-12 h-1.5 rounded-full bg-white/25" />
         </div>
 
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-6 pt-3 pb-4 border-b border-white/10">
-          <div className="text-left">
+        <div className="flex items-center justify-between px-6 pt-3 pb-3 border-b border-white/10">
+          <div className="text-left min-w-0 pr-3">
             <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400">
               {card.category}
             </span>
-            <h2 className="text-base font-bold text-white truncate max-w-[150px] sm:max-w-[220px]">
+            <h2 className="text-base font-bold text-white truncate max-w-[200px] sm:max-w-[280px]">
               {isEditing ? editTitle : card.title}
             </h2>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                if (isEditing) {
-                  handleCancelEdit();
-                } else {
-                  setIsEditing(true);
-                }
-              }}
-              type="button"
-              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-mono border transition-all ${
-                isEditing
-                  ? 'bg-emerald-500 text-black border-emerald-400 font-semibold shadow-[0_0_12px_rgba(52,211,153,0.4)]'
-                  : 'bg-white/10 hover:bg-white/15 text-white/90 border-white/10'
-              }`}
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>{isEditing ? 'Cancel' : 'Edit'}</span>
-            </button>
-
+          <div className="flex items-center space-x-2 shrink-0">
             <button
               onClick={toggleFlip}
               type="button"
@@ -259,7 +240,8 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             <button
               onClick={onClose}
               type="button"
-              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-white/80 transition-all"
+              aria-label="Close"
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-white/80 transition-all shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
@@ -350,22 +332,34 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                           भारत सरकार • GOVT OF INDIA
                         </span>
                       )}
+                      {card.type === 'address' && (
+                        <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-md">
+                          <MapPin className="w-4 h-4 text-emerald-400" />
+                          <span className="text-xs font-mono font-bold tracking-wider text-emerald-300 uppercase">
+                            {String(card.details['Label / Type'] || 'SAVED ADDRESS')}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-end justify-between z-10">
-                      <div>
-                        <p className="text-xs text-white/50 font-mono uppercase">Holder / Subject</p>
-                        <p className="text-sm font-bold text-white uppercase font-mono tracking-wider">
+                      <div className="min-w-0 pr-2">
+                        <p className="text-[10px] text-white/50 font-mono uppercase">
+                          {card.type === 'address' ? 'Location' : 'Holder / Subject'}
+                        </p>
+                        <p className="text-xs sm:text-sm font-bold text-white uppercase font-mono tracking-wider truncate max-w-[200px]">
                           {String(
-                            card.details['Full Name'] ||
-                            card.details['Cardholder Name'] ||
-                            card.details['Candidate Name'] ||
-                            card.details['Name'] ||
-                            'AARAV SHARMA'
+                            card.type === 'address'
+                              ? `${card.details['City'] || ''} ${card.details['Pincode / ZIP'] ? `• ${card.details['Pincode / ZIP']}` : ''}`
+                              : card.details['Full Name'] ||
+                                card.details['Cardholder Name'] ||
+                                card.details['Candidate Name'] ||
+                                card.details['Name'] ||
+                                'AARAV SHARMA'
                           )}
                         </p>
                       </div>
-                      <span className="text-[11px] font-mono text-white/70">
+                      <span className="text-[10px] font-mono text-white/70 shrink-0">
                         SECURED • 256-BIT
                       </span>
                     </div>
@@ -479,6 +473,78 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             </label>
           </div>
 
+          {/* Main Clean Edit Button Directly Below Card */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light');
+                if (isEditing) {
+                  handleCancelEdit();
+                } else {
+                  setIsEditing(true);
+                }
+              }}
+              className={`w-full py-3 px-4 rounded-2xl flex items-center justify-center space-x-2 text-xs font-mono font-semibold transition-all border ${
+                isEditing
+                  ? 'bg-white/10 hover:bg-white/15 text-white/90 border-white/20 active:scale-98'
+                  : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30 active:scale-98 shadow-[0_0_15px_rgba(52,211,153,0.15)]'
+              }`}
+            >
+              {isEditing ? (
+                <>
+                  <X className="w-4 h-4 text-white/70" />
+                  <span>Cancel Editing</span>
+                </>
+              ) : (
+                <>
+                  <Edit3 className="w-4 h-4 text-emerald-400" />
+                  <span>Edit Card Details</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Quick Copy Full Address Action */}
+          {card.type === 'address' && (
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+              <div className="min-w-0 pr-3">
+                <span className="text-[10px] font-mono uppercase text-emerald-400 block font-semibold">
+                  {card.details['Label / Type'] || 'SAVED ADDRESS'}
+                </span>
+                <p className="text-xs text-white/90 font-mono truncate mt-0.5">
+                  {[
+                    card.details['Flat / House No'],
+                    card.details['Street / Society / Area'] || card.details['Street / Society'],
+                    card.details['City'],
+                    card.details['Pincode / ZIP']
+                  ].filter(Boolean).join(', ')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const full = [
+                    card.details['Resident Name'] || card.details['Full Name / Contact'],
+                    card.details['Flat / House No'],
+                    card.details['Street / Society / Area'] || card.details['Street / Society'],
+                    card.details['Landmark'],
+                    card.details['City'],
+                    card.details['State'],
+                    card.details['Pincode / ZIP'],
+                    card.details['Country'],
+                    card.details['Contact Phone'] || card.details['Phone Number']
+                  ].filter(Boolean).join(', ');
+                  copyToClipboard('Full Address', full);
+                }}
+                className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-xs font-mono text-emerald-400 flex items-center space-x-1.5 shrink-0 border border-white/10"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Full</span>
+              </button>
+            </div>
+          )}
+
           {/* Special Transit Metro Card Actions */}
           {card.type === 'metro_card' && (
             <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col space-y-3">
@@ -552,34 +618,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               <h4 className="text-xs font-mono tracking-wider uppercase text-white/50">
                 Encrypted Fields & Details
               </h4>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic('light');
-                  if (isEditing) {
-                    handleCancelEdit();
-                  } else {
-                    setIsEditing(true);
-                  }
-                }}
-                className={`flex items-center space-x-1.5 px-3 py-1 rounded-xl text-xs font-mono border transition-all ${
-                  isEditing
-                    ? 'bg-white/10 text-white/80 border-white/20'
-                    : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
-                }`}
-              >
-                {isEditing ? (
-                  <>
-                    <X className="w-3 h-3" />
-                    <span>Cancel</span>
-                  </>
-                ) : (
-                  <>
-                    <Edit3 className="w-3 h-3" />
-                    <span>Edit Details</span>
-                  </>
-                )}
-              </button>
             </div>
 
             {isEditing ? (
@@ -741,19 +779,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                       </div>
 
                       <div className="flex items-center space-x-1 shrink-0">
-                        {/* Inline edit trigger button */}
-                        <button
-                          onClick={() => {
-                            triggerHaptic('light');
-                            setIsEditing(true);
-                          }}
-                          type="button"
-                          title={`Edit ${key}`}
-                          className="p-2 rounded-xl hover:bg-white/10 active:scale-95 text-white/40 hover:text-emerald-400 transition-all opacity-80 group-hover:opacity-100"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-
                         {isSensitive && (
                           <button
                             onClick={() => toggleMask(key)}

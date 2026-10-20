@@ -301,4 +301,63 @@ export const INITIAL_CARDS: WalletCard[] = [
     favorite: true,
     createdAt: new Date().toISOString(),
   },
+
+  // 12. HOME ADDRESS
+  {
+    id: 'card-address-home',
+    type: 'address',
+    category: 'address',
+    title: 'Home Address',
+    subtitle: 'Primary Residential Address',
+    colorScheme: {
+      primary: '#047857',
+      secondary: '#064e3b',
+      accent: '#34d399',
+      gradient: 'from-[#065f46] via-[#047857] to-[#022c22]',
+    },
+    details: {
+      'Label / Type': 'HOME',
+      'Resident Name': 'AARAV SHARMA',
+      'Flat / House No': 'Flat 402, Tower B, Green Heights',
+      'Street / Society': 'Sector 62, Phase 3',
+      'Landmark': 'Near Metro Station',
+      'City': 'Noida',
+      'State': 'Uttar Pradesh',
+      'Pincode / ZIP': '201309',
+      'Country': 'India',
+      'Contact Phone': '+91 98765 43210',
+    },
+    sensitiveKeys: [],
+    favorite: true,
+    createdAt: new Date().toISOString(),
+  },
+
+  // 13. WORK ADDRESS
+  {
+    id: 'card-address-work',
+    type: 'address',
+    category: 'address',
+    title: 'Work / Office Address',
+    subtitle: 'Corporate Headquarters',
+    colorScheme: {
+      primary: '#0369a1',
+      secondary: '#075985',
+      accent: '#38bdf8',
+      gradient: 'from-[#075985] via-[#0369a1] to-[#082f49]',
+    },
+    details: {
+      'Label / Type': 'WORK / OFFICE',
+      'Company Name': 'Tech Park Campus Ltd',
+      'Floor / Desk': '6th Floor, Building 4A',
+      'Tech Park': 'Cyber City Business Hub',
+      'City': 'Gurugram',
+      'State': 'Haryana',
+      'Pincode / ZIP': '122002',
+      'Country': 'India',
+      'Desk Phone / Ext': '+91 124 4567890 (Ext: 402)',
+    },
+    sensitiveKeys: [],
+    favorite: false,
+    createdAt: new Date().toISOString(),
+  },
 ];

@@ -3,7 +3,8 @@ export type CardCategory =
   | 'finance'
   | 'transit'
   | 'education'
-  | 'biometric';
+  | 'biometric'
+  | 'address';
 
 export type CardType =
   | 'passport'
@@ -16,6 +17,7 @@ export type CardType =
   | 'marksheet'
   | 'signature'
   | 'passport_photo'
+  | 'address'
   | 'custom';
 
 export interface WalletCard {

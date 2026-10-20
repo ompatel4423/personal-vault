@@ -38,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   const categories: { id: CardCategory | 'all'; label: string }[] = [
     { id: 'all', label: 'All Cards' },
     { id: 'identity', label: 'Identity' },
+    { id: 'address', label: 'Addresses' },
     { id: 'finance', label: 'Finance' },
     { id: 'transit', label: 'Transit' },
     { id: 'education', label: 'Education' },
@@ -47,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <div 
       className="w-full flex flex-col space-y-4 px-5 pb-3 z-20"
-      style={{ paddingTop: 'max(env(safe-area-inset-top, 24px) + 38px, 105px)' }}
+      style={{ paddingTop: 'max(env(safe-area-inset-top, 24px) + 6px, 68px)' }}
     >
       {/* Top action row */}
       <div className="flex items-center justify-between">
