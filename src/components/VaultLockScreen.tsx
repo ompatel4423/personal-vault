@@ -84,7 +84,7 @@ export const VaultLockScreen: React.FC<VaultLockScreenProps> = ({
 
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-            <span>{isFirstSetup ? 'Initialize Vault PIN' : 'Personal Vault'}</span>
+            <span>{isFirstSetup ? 'Initialize Vault PIN' : "Om's Personal Vault"}</span>
             <Lock className="w-4 h-4 text-emerald-400" />
           </h1>
           <p className="text-xs text-white/50 font-mono mt-1">

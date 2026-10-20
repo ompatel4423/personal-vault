@@ -1,7 +1,7 @@
 {
-  "name": "Personal Vault",
-  "short_name": "Vault",
-  "description": "Secure Encrypted Personal Wallet for iPhone 15 Pro",
+  "name": "Om's Personal Vault",
+  "short_name": "Om's Vault",
+  "description": "Om's Encrypted Personal Wallet & Identity Vault for iPhone 15 Pro",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#050508",
@@ -9,10 +9,28 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

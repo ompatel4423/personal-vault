@@ -101,7 +101,7 @@ export const DynamicIsland: React.FC<DynamicIslandProps> = ({
                   </div>
                   <div className="text-left">
                     <p className="text-xs font-bold text-white tracking-wide">
-                      IPHONE 15 PRO VAULT
+                      OM'S PERSONAL VAULT
                     </p>
                     <p className="text-[10px] text-white/50 font-mono">
                       AES-256-GCM • SECURE ENCLAVE

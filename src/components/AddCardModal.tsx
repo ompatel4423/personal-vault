@@ -240,7 +240,7 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center space-x-2">
             <Plus className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-base font-bold text-white">Add to Personal Vault</h2>
+            <h2 className="text-base font-bold text-white">Add to Om's Personal Vault</h2>
           </div>
           <button
             onClick={onClose}

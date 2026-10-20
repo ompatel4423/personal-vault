@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div className="text-left">
             <h1 className="text-base font-bold tracking-tight text-white flex items-center space-x-1.5">
-              <span>Personal Vault</span>
+              <span>Om's Personal Vault</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </h1>
             <p className="text-[10px] text-white/50 font-mono tracking-wider">
