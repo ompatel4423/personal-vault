@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Delete, Lock, Sparkles, RotateCcw } from 'lucide-react';
-import { ShaderButtons } from '@designcodeio/threeui';
+import { Shield, Delete, Lock, RotateCcw } from 'lucide-react';
 import { triggerHaptic } from '../services/crypto';
 
 interface VaultLockScreenProps {
@@ -157,37 +156,10 @@ export const VaultLockScreen: React.FC<VaultLockScreenProps> = ({
         </button>
       </div>
 
-      {/* Bottom Shader Button and Demo Bypass Info */}
-      <div className="w-full flex flex-col items-center space-y-3">
-        <div className="w-full max-w-[280px] h-[52px] relative rounded-2xl overflow-hidden border border-white/15 shadow-xl group">
-          <button
-            type="button"
-            onClick={() => {
-              if (pin.length === 4) {
-                handleDigit('');
-              } else {
-                onUnlock('1234');
-              }
-            }}
-            className="absolute inset-0 z-10 w-full h-full flex items-center justify-center cursor-pointer bg-black/40 hover:bg-black/20 backdrop-blur-sm transition-all"
-          >
-            <span className="flex items-center space-x-2 text-xs font-semibold text-white tracking-wider uppercase font-mono">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{pin.length === 4 ? 'Unlock Vault' : 'Quick Demo Unlock'}</span>
-            </span>
-          </button>
-          <ShaderButtons
-            variant="plasma-button"
-            mode="dark"
-            hue={0}
-            saturation={1.0}
-            brightness={1.0}
-            className="w-full h-full pointer-events-none"
-          />
-        </div>
-
-        <p className="text-[11px] text-white/40 font-mono text-center">
-          Default Master PIN: <span className="text-emerald-400 font-bold">1234</span> • Or enter customized PIN
+      {/* Bottom Security Footer */}
+      <div className="w-full flex flex-col items-center pb-4 pt-2">
+        <p className="text-[11px] text-white/30 font-mono tracking-wider text-center uppercase">
+          Biometric Enclave • AES-256 Encrypted
         </p>
       </div>
     </div>

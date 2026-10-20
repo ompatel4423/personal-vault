@@ -234,7 +234,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/15 active:scale-95 text-xs text-white/90 border border-white/10 transition-all font-mono"
             >
               <RotateCw className="w-3.5 h-3.5" />
-              <span>{isFlipped ? 'Front' : 'Flip 3D'}</span>
+              <span>{isFlipped ? 'Front' : 'Flip'}</span>
             </button>
 
             <button
@@ -251,14 +251,28 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         {/* Scrollable Content */}
         <div className="overflow-y-auto px-6 py-5 space-y-5 flex-1">
           {/* 3D Card Display */}
-          <div className="card-perspective w-full h-[215px]">
+          <div 
+            className="card-perspective w-full h-[215px] relative"
+            style={{
+              perspective: '1000px',
+              WebkitPerspective: '1000px',
+            }}
+          >
+            {/* ================= FRONT OF CARD ================= */}
             <div
-              className={`preserve-3d relative w-full h-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                isFlipped ? 'rotate-y-180' : ''
+              className={`absolute inset-0 w-full h-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                isFlipped ? 'pointer-events-none' : 'pointer-events-auto'
               }`}
+              style={{
+                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                WebkitTransform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transformStyle: 'preserve-3d',
+                WebkitTransformStyle: 'preserve-3d',
+              }}
             >
-              {/* ================= FRONT OF CARD ================= */}
-              <div className="backface-hidden absolute inset-0 w-full h-full rounded-[24px] overflow-hidden shadow-2xl border border-white/15">
+              <div className="relative w-full h-full rounded-[24px] overflow-hidden shadow-2xl border border-white/15">
                 {card.frontImage ? (
                   // REAL PHOTO VIEW (FRONT)
                   <div className="relative w-full h-full bg-black group">
@@ -366,9 +380,23 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* ================= BACK OF CARD (Flipped) ================= */}
-              <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-[24px] overflow-hidden shadow-2xl border border-white/20">
+            {/* ================= BACK OF CARD (Flipped) ================= */}
+            <div
+              className={`absolute inset-0 w-full h-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                !isFlipped ? 'pointer-events-none' : 'pointer-events-auto'
+              }`}
+              style={{
+                transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)',
+                WebkitTransform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)',
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transformStyle: 'preserve-3d',
+                WebkitTransformStyle: 'preserve-3d',
+              }}
+            >
+              <div className="relative w-full h-full rounded-[24px] overflow-hidden shadow-2xl border border-white/20">
                 {card.backImage ? (
                   // REAL PHOTO VIEW (BACK)
                   <div className="relative w-full h-full bg-black group">
@@ -407,40 +435,135 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                     </div>
                   </div>
                 ) : (
-                  // DEFAULT STYLIZED CARD VIEW (BACK)
+                  // DEFAULT STYLIZED CARD VIEW (BACK) - UNMIRRORED & STRAIGHT
                   <div className="relative w-full h-full rounded-[24px] bg-[#121217] p-5 flex flex-col justify-between overflow-hidden">
                     <div className="w-full h-10 bg-black/90 -mx-5 px-5 mt-1 border-y border-white/5 flex items-center justify-end">
-                      <span className="text-[9px] font-mono text-white/40 tracking-widest">
-                        EMV 3D SECURE CHIP
+                      <span className="text-[9px] font-mono text-white/40 tracking-widest uppercase">
+                        {card.type === 'bank_card'
+                          ? 'EMV 3D SECURE CHIP'
+                          : card.type === 'address'
+                          ? 'VERIFIED RESIDENTIAL / WORK RECORD'
+                          : card.type === 'driving_licence'
+                          ? 'MINISTRY OF ROAD TRANSPORT & HIGHWAYS'
+                          : card.type === 'aadhaar'
+                          ? 'UNIQUE IDENTIFICATION AUTHORITY OF INDIA'
+                          : 'SECURE ENCLAVE IDENTIFICATION'}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between z-10 px-2 py-2 bg-white/5 rounded-xl border border-white/10">
-                      <div className="text-left">
-                        <span className="text-[9px] text-white/50 uppercase font-mono block">
-                          SECURITY CODE / CVV
+                    {card.type === 'address' ? (
+                      <div className="my-auto z-10 px-3 py-2 bg-white/5 rounded-xl border border-white/10 text-left">
+                        <span className="text-[9px] text-emerald-400 uppercase font-mono block mb-1">
+                          SAVED LOCATION & ADDRESS
                         </span>
-                        <span className="text-sm font-mono font-bold text-emerald-400 tracking-widest">
-                          {card.details['CVV'] ? String(card.details['CVV']) : '••••'}
-                        </span>
+                        <p className="text-xs font-mono text-white/90 leading-relaxed truncate">
+                          {[
+                            card.details['Flat / House No'] || card.details['Floor / Desk'],
+                            card.details['Street / Society'] || card.details['Tech Park'],
+                          ].filter(Boolean).join(', ')}
+                        </p>
+                        <p className="text-xs font-mono text-white/70 leading-relaxed truncate">
+                          {[
+                            card.details['City'],
+                            card.details['State'],
+                            card.details['Pincode / ZIP'],
+                          ].filter(Boolean).join(', ')}
+                        </p>
                       </div>
-                      <button
-                        onClick={() =>
-                          copyToClipboard(
-                            'CVV',
-                            String(card.details['CVV'] || card.details['VID'] || '834')
-                          )
-                        }
-                        type="button"
-                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white/80"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    ) : card.type === 'driving_licence' ? (
+                      <div className="my-auto z-10 px-3 py-2 bg-white/5 rounded-xl border border-white/10 text-left">
+                        <div className="grid grid-cols-2 gap-2 text-left">
+                          <div>
+                            <span className="text-[9px] text-white/50 uppercase font-mono block">
+                              BLOOD GROUP
+                            </span>
+                            <span className="text-xs font-mono font-bold text-amber-400">
+                              {String(card.details['Blood Group'] || 'O +ve')}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-white/50 uppercase font-mono block">
+                              ORGAN DONOR
+                            </span>
+                            <span className="text-xs font-mono font-bold text-emerald-400">
+                              {String(card.details['Organ Donor'] || 'YES')}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1 pt-1 border-t border-white/5">
+                          <span className="text-[9px] text-white/40 uppercase font-mono block">
+                            ISSUING RTO
+                          </span>
+                          <span className="text-[11px] font-mono text-white/80 truncate block">
+                            {String(card.details['Issuing Authority'] || 'TRANSPORT DEPT')}
+                          </span>
+                        </div>
+                      </div>
+                    ) : card.details['CVV'] ? (
+                      <div className="flex items-center justify-between z-10 px-3 py-2 bg-white/5 rounded-xl border border-white/10">
+                        <div className="text-left">
+                          <span className="text-[9px] text-white/50 uppercase font-mono block">
+                            SECURITY CODE / CVV
+                          </span>
+                          <span className="text-sm font-mono font-bold text-emerald-400 tracking-widest">
+                            {String(card.details['CVV'])}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => copyToClipboard('CVV', String(card.details['CVV']))}
+                          type="button"
+                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white/80"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : card.details['VID'] ? (
+                      <div className="flex items-center justify-between z-10 px-3 py-2 bg-white/5 rounded-xl border border-white/10">
+                        <div className="text-left">
+                          <span className="text-[9px] text-white/50 uppercase font-mono block">
+                            VIRTUAL ID (VID)
+                          </span>
+                          <span className="text-xs font-mono font-bold text-emerald-400 tracking-wider">
+                            {String(card.details['VID'])}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => copyToClipboard('VID', String(card.details['VID']))}
+                          type="button"
+                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white/80"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between z-10 px-3 py-2 bg-white/5 rounded-xl border border-white/10">
+                        <div className="text-left">
+                          <span className="text-[9px] text-white/50 uppercase font-mono block">
+                            SECURITY ENCLAVE ID
+                          </span>
+                          <span className="text-xs font-mono font-bold text-emerald-400 tracking-wider">
+                            {card.id.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="p-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono">
+                          VERIFIED
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between text-[10px] text-white/40 font-mono">
-                      <span>Authorized Signature Required</span>
-                      <span>Non-Transferable</span>
+                      <span>
+                        {card.type === 'address'
+                          ? 'Address Authenticated'
+                          : card.type === 'driving_licence'
+                          ? 'Govt of India Approved'
+                          : 'Authorized Signature Required'}
+                      </span>
+                      <span>
+                        {card.type === 'address'
+                          ? 'AES-256'
+                          : 'Non-Transferable'}
+                      </span>
                     </div>
                   </div>
                 )}
