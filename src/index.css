@@ -124,3 +124,21 @@ html, body {
   --ring: 142 70% 50%;
 }
 
+/* Kill any third-party/Netlify floating badge or drawer */
+iframe#netlify-drawer,
+div#netlify-drawer,
+div[data-netlify-drawer],
+[id*="netlify-drawer"],
+[class*="netlify-drawer"],
+[id*="netlify-identity"],
+[class*="netlify-badge"],
+[id*="netlify-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+

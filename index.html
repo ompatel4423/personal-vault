@@ -15,6 +15,25 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     <title>Om's Personal Vault • iPhone 15 Pro</title>
+
+    <style>
+      /* Suppress any Netlify deploy preview floating drawer/badge */
+      iframe#netlify-drawer,
+      div#netlify-drawer,
+      div[data-netlify-drawer],
+      [id*="netlify-drawer"],
+      [class*="netlify-drawer"],
+      [id*="netlify-identity"],
+      [class*="netlify-badge"],
+      [id*="netlify-badge"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+    </style>
   </head>
   <body class="bg-[#050508] text-white antialiased selection:bg-emerald-500 selection:text-black">
     <div id="root"></div>
