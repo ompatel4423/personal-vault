@@ -114,10 +114,18 @@ export const BackupModal: React.FC<BackupModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-[32px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
+        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[32px] max-h-[calc(100dvh-100px)] sm:max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+        style={{
+          marginTop: 'max(env(safe-area-inset-top, 24px) + 40px, 100px)',
+        }}
       >
+        {/* Grab Handle for iOS feel */}
+        <div className="w-full flex justify-center pt-5 pb-2 sm:hidden">
+          <div className="w-12 h-1.5 rounded-full bg-white/25" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 pt-3 pb-4 border-b border-white/10">
           <div className="flex items-center space-x-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <h2 className="text-base font-bold text-white">Security & Backup</h2>

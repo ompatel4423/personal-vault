@@ -12,7 +12,9 @@ import {
   PlusCircle,
   Train,
   Camera,
-  ImageIcon
+  ImageIcon,
+  Edit3,
+  Plus
 } from 'lucide-react';
 import type { WalletCard } from '../types/wallet';
 import { triggerHaptic } from '../services/crypto';
@@ -38,6 +40,72 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [isFlipped, setIsFlipped] = useState(false);
   const [unmaskedKeys, setUnmaskedKeys] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Edit Card Details State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(card.title);
+  const [editSubtitle, setEditSubtitle] = useState(card.subtitle);
+  const [editDetails, setEditDetails] = useState<Record<string, string | number | boolean>>({ ...card.details });
+  const [newFieldKey, setNewFieldKey] = useState('');
+  const [newFieldValue, setNewFieldValue] = useState('');
+  const [showAddField, setShowAddField] = useState(false);
+
+  React.useEffect(() => {
+    setEditTitle(card.title);
+    setEditSubtitle(card.subtitle);
+    setEditDetails({ ...card.details });
+  }, [card]);
+
+  const handleSaveDetails = () => {
+    triggerHaptic('success');
+    const updated: WalletCard = {
+      ...card,
+      title: editTitle.trim() || card.title,
+      subtitle: editSubtitle.trim() || card.subtitle,
+      details: editDetails,
+    };
+    onUpdateCard(updated);
+    setIsEditing(false);
+    setShowAddField(false);
+    onTriggerAlert('Card Details Saved', updated.title, 'success');
+  };
+
+  const handleCancelEdit = () => {
+    triggerHaptic('light');
+    setEditTitle(card.title);
+    setEditSubtitle(card.subtitle);
+    setEditDetails({ ...card.details });
+    setIsEditing(false);
+    setShowAddField(false);
+  };
+
+  const handleDetailChange = (key: string, val: string) => {
+    setEditDetails((prev) => ({
+      ...prev,
+      [key]: val,
+    }));
+  };
+
+  const handleDeleteField = (key: string) => {
+    triggerHaptic('light');
+    setEditDetails((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const handleAddNewField = () => {
+    if (!newFieldKey.trim()) return;
+    triggerHaptic('light');
+    setEditDetails((prev) => ({
+      ...prev,
+      [newFieldKey.trim()]: newFieldValue.trim(),
+    }));
+    setNewFieldKey('');
+    setNewFieldValue('');
+    setShowAddField(false);
+  };
 
   const toggleFlip = () => {
     triggerHaptic('medium');
@@ -137,25 +205,48 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-[32px] max-h-[92vh] flex flex-col overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.8)]"
+        className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[32px] max-h-[calc(100dvh-100px)] sm:max-h-[90vh] flex flex-col overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.8)]"
+        style={{
+          marginTop: 'max(env(safe-area-inset-top, 24px) + 40px, 100px)',
+        }}
       >
-        {/* Grab Handle for iOS feel */}
-        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
+        {/* Grab Handle with safe top spacing to prevent Dynamic Island blur */}
+        <div className="w-full flex justify-center pt-5 pb-2 sm:hidden">
+          <div className="w-12 h-1.5 rounded-full bg-white/25" />
         </div>
 
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 pt-3 pb-4 border-b border-white/10">
           <div className="text-left">
             <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400">
               {card.category}
             </span>
-            <h2 className="text-base font-bold text-white truncate max-w-[240px]">
-              {card.title}
+            <h2 className="text-base font-bold text-white truncate max-w-[150px] sm:max-w-[220px]">
+              {isEditing ? editTitle : card.title}
             </h2>
           </div>
 
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                if (isEditing) {
+                  handleCancelEdit();
+                } else {
+                  setIsEditing(true);
+                }
+              }}
+              type="button"
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-mono border transition-all ${
+                isEditing
+                  ? 'bg-emerald-500 text-black border-emerald-400 font-semibold shadow-[0_0_12px_rgba(52,211,153,0.4)]'
+                  : 'bg-white/10 hover:bg-white/15 text-white/90 border-white/10'
+              }`}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{isEditing ? 'Cancel' : 'Edit'}</span>
+            </button>
+
             <button
               onClick={toggleFlip}
               type="button"
@@ -456,66 +547,246 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           )}
 
           {/* Detailed Data Fields */}
-          <div className="space-y-2.5">
-            <h4 className="text-xs font-mono tracking-wider uppercase text-white/50 text-left px-1">
-              Encrypted Fields & Details
-            </h4>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h4 className="text-xs font-mono tracking-wider uppercase text-white/50">
+                Encrypted Fields & Details
+              </h4>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  if (isEditing) {
+                    handleCancelEdit();
+                  } else {
+                    setIsEditing(true);
+                  }
+                }}
+                className={`flex items-center space-x-1.5 px-3 py-1 rounded-xl text-xs font-mono border transition-all ${
+                  isEditing
+                    ? 'bg-white/10 text-white/80 border-white/20'
+                    : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
+                }`}
+              >
+                {isEditing ? (
+                  <>
+                    <X className="w-3 h-3" />
+                    <span>Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <Edit3 className="w-3 h-3" />
+                    <span>Edit Details</span>
+                  </>
+                )}
+              </button>
+            </div>
 
-            <div className="space-y-2">
-              {Object.entries(card.details).map(([key, val]) => {
-                const isSensitive = card.sensitiveKeys.includes(key);
-                const isUnmasked = !!unmaskedKeys[key];
-                const rawValue = String(val);
-                const displayValue = isSensitive && !isUnmasked ? '•••• •••• ••••' : rawValue;
-                const isCopied = copiedKey === key;
+            {isEditing ? (
+              /* ================= EDIT MODE ================= */
+              <div className="space-y-3 animate-in fade-in duration-200">
+                {/* Title & Subtitle editing */}
+                <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-white/50 block mb-1">
+                      Card Title
+                    </label>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-white/50 block mb-1">
+                      Issuer / Subtitle
+                    </label>
+                    <input
+                      type="text"
+                      value={editSubtitle}
+                      onChange={(e) => setEditSubtitle(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                    />
+                  </div>
+                </div>
 
-                return (
-                  <div
-                    key={key}
-                    className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/5 transition-all text-left"
-                  >
-                    <div className="min-w-0 pr-3">
-                      <p className="text-[10px] uppercase font-mono text-white/50 truncate">
-                        {key}
-                      </p>
-                      <p className="text-xs font-mono text-white/95 font-medium tracking-wide break-all mt-0.5">
-                        {displayValue}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center space-x-1 shrink-0">
-                      {isSensitive && (
+                {/* Edit existing detail fields */}
+                <div className="space-y-2">
+                  {Object.entries(editDetails).map(([key, val]) => (
+                    <div
+                      key={key}
+                      className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-mono uppercase text-white/60">
+                          {key}
+                        </label>
                         <button
-                          onClick={() => toggleMask(key)}
                           type="button"
-                          title={isUnmasked ? 'Hide' : 'Reveal'}
-                          className="p-2 rounded-xl hover:bg-white/10 active:scale-95 text-white/60 hover:text-white transition-all"
+                          onClick={() => handleDeleteField(key)}
+                          className="p-1 text-white/40 hover:text-rose-400 transition-colors rounded-lg"
+                          title={`Delete ${key}`}
                         >
-                          {isUnmasked ? (
-                            <EyeOff className="w-3.5 h-3.5 text-amber-400" />
-                          ) : (
-                            <Eye className="w-3.5 h-3.5" />
-                          )}
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
-                      )}
+                      </div>
+                      <input
+                        type="text"
+                        value={String(val)}
+                        onChange={(e) => handleDetailChange(key, e.target.value)}
+                        placeholder={`Enter ${key}...`}
+                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                  ))}
+                </div>
 
+                {/* Add New Custom Field */}
+                {showAddField ? (
+                  <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-dashed border-emerald-500/40 space-y-2.5">
+                    <span className="text-[10px] font-mono uppercase text-emerald-400 block font-semibold">
+                      Add Custom Attribute
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Field Name"
+                        value={newFieldKey}
+                        onChange={(e) => setNewFieldKey(e.target.value)}
+                        className="px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={newFieldValue}
+                        onChange={(e) => setNewFieldValue(e.target.value)}
+                        className="px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end space-x-2 pt-1">
                       <button
-                        onClick={() => copyToClipboard(key, rawValue)}
                         type="button"
-                        title="Copy to clipboard"
-                        className="p-2 rounded-xl hover:bg-white/10 active:scale-95 text-white/60 hover:text-white transition-all"
+                        onClick={() => {
+                          setShowAddField(false);
+                          setNewFieldKey('');
+                          setNewFieldValue('');
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-mono text-white/60 hover:text-white"
                       >
-                        {isCopied ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAddNewField}
+                        disabled={!newFieldKey.trim()}
+                        className="px-3.5 py-1.5 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-black font-semibold text-xs font-mono disabled:opacity-40"
+                      >
+                        Add
                       </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddField(true)}
+                    className="w-full py-2.5 rounded-xl border border-dashed border-white/15 hover:border-emerald-400/50 text-white/60 hover:text-emerald-400 text-xs font-mono flex items-center justify-center space-x-1.5 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Another Field</span>
+                  </button>
+                )}
+
+                {/* Save and Cancel buttons */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-mono active:scale-95 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveDetails}
+                    className="w-full py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center space-x-1.5 shadow-[0_0_20px_rgba(52,211,153,0.35)] active:scale-95 transition-all"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* ================= READ-ONLY VIEW ================= */
+              <div className="space-y-2">
+                {Object.entries(card.details).map(([key, val]) => {
+                  const isSensitive = card.sensitiveKeys.includes(key);
+                  const isUnmasked = !!unmaskedKeys[key];
+                  const rawValue = String(val);
+                  const displayValue = isSensitive && !isUnmasked ? '•••• •••• ••••' : rawValue;
+                  const isCopied = copiedKey === key;
+
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/5 transition-all text-left group"
+                    >
+                      <div className="min-w-0 pr-3 flex-1">
+                        <p className="text-[10px] uppercase font-mono text-white/50 truncate">
+                          {key}
+                        </p>
+                        <p className="text-xs font-mono text-white/95 font-medium tracking-wide break-all mt-0.5">
+                          {displayValue}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center space-x-1 shrink-0">
+                        {/* Inline edit trigger button */}
+                        <button
+                          onClick={() => {
+                            triggerHaptic('light');
+                            setIsEditing(true);
+                          }}
+                          type="button"
+                          title={`Edit ${key}`}
+                          className="p-2 rounded-xl hover:bg-white/10 active:scale-95 text-white/40 hover:text-emerald-400 transition-all opacity-80 group-hover:opacity-100"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+
+                        {isSensitive && (
+                          <button
+                            onClick={() => toggleMask(key)}
+                            type="button"
+                            title={isUnmasked ? 'Hide' : 'Reveal'}
+                            className="p-2 rounded-xl hover:bg-white/10 active:scale-95 text-white/60 hover:text-white transition-all"
+                          >
+                            {isUnmasked ? (
+                              <EyeOff className="w-3.5 h-3.5 text-amber-400" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => copyToClipboard(key, rawValue)}
+                          type="button"
+                          title="Copy to clipboard"
+                          className="p-2 rounded-xl hover:bg-white/10 active:scale-95 text-white/60 hover:text-white transition-all"
+                        >
+                          {isCopied ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Delete Option */}
