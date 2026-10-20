@@ -34,7 +34,7 @@ export const INITIAL_CARDS: WalletCard[] = [
         type: 'pdf',
         dataUrl: createSamplePdf(
           'UNIQUE IDENTIFICATION AUTHORITY OF INDIA',
-          'Official Electronic Aadhaar Card • Govt of India',
+          'Official Electronic Aadhaar Card - Govt of India',
           [
             'Aadhaar Number: 4829 1092 8472',
             'Full Name: AARAV SHARMA',
@@ -138,7 +138,7 @@ export const INITIAL_CARDS: WalletCard[] = [
         type: 'pdf',
         dataUrl: createSamplePdf(
           'MINISTRY OF ROAD TRANSPORT & HIGHWAYS',
-          'Official Driving Licence Certificate • Form 7',
+          'Official Driving Licence Certificate - Form 7',
           [
             'Licence No: DL-0420190089123',
             'Name: AARAV SHARMA',

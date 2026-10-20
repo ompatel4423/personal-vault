@@ -11,21 +11,31 @@ const BIOMETRIC_PAYLOAD_KEY = 'vault_biometric_payload';
 const BIOMETRIC_SALT_KEY = 'vault_biometric_salt';
 
 function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  try {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  } catch (err) {
+    console.error('bufferToBase64 error:', err);
+    return '';
   }
-  return window.btoa(binary);
 }
 
 function base64ToBuffer(base64: string): Uint8Array {
-  const binary = window.atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  try {
+    const binary = window.atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  } catch (err) {
+    console.error('base64ToBuffer error:', err);
+    return new Uint8Array(0);
   }
-  return bytes;
 }
 
 /**
@@ -63,8 +73,12 @@ export function getBiometricLabel(): string {
  * Checks if biometrics has already been enrolled in this vault
  */
 export function isBiometricsEnrolled(): boolean {
-  if (typeof localStorage === 'undefined') return false;
-  return !!localStorage.getItem(BIOMETRIC_CRED_KEY) && !!localStorage.getItem(BIOMETRIC_PAYLOAD_KEY);
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return false;
+  try {
+    return !!localStorage.getItem(BIOMETRIC_CRED_KEY) && !!localStorage.getItem(BIOMETRIC_PAYLOAD_KEY);
+  } catch {
+    return false;
+  }
 }
 
 /**
