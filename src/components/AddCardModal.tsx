@@ -254,7 +254,12 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200"
+    >
       <div 
         className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[32px] max-h-[calc(100dvh-100px)] sm:max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
         style={{
@@ -268,16 +273,25 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-3 pb-4 border-b border-white/10">
-          <div className="flex items-center space-x-2">
-            <Plus className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-base font-bold text-white">Add to Om's Personal Vault</h2>
+          <div className="flex items-center space-x-2.5 min-w-0 pr-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <Plus className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-bold text-white truncate">Add New Document</h2>
+              <p className="text-[10px] text-white/50 font-mono truncate">Om's Personal Vault</p>
+            </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => {
+              triggerHaptic('light');
+              onClose();
+            }}
             type="button"
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-white/80"
+            aria-label="Close"
+            className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 flex items-center justify-center text-white border border-white/20 shrink-0 z-10 transition-all shadow-md cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
@@ -444,14 +458,25 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
             </div>
           </div>
 
-          {/* Submit */}
-          <div className="pt-4 pb-2">
+          {/* Submit & Cancel */}
+          <div className="grid grid-cols-2 gap-3 pt-4 pb-2">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light');
+                onClose();
+              }}
+              className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 active:scale-98 text-white font-semibold text-xs tracking-wider uppercase font-mono border border-white/10 transition-all flex items-center justify-center space-x-1.5"
+            >
+              <X className="w-4 h-4 text-white/70" />
+              <span>Cancel</span>
+            </button>
             <button
               type="submit"
               className="w-full py-3 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-black font-semibold text-xs tracking-wider uppercase font-mono shadow-[0_0_20px_rgba(52,211,153,0.3)] active:scale-98 transition-all flex items-center justify-center space-x-2"
             >
               <Check className="w-4 h-4" />
-              <span>Save & Encrypt Card</span>
+              <span>Save & Encrypt</span>
             </button>
           </div>
         </form>

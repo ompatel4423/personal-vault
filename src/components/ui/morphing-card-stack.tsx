@@ -3,7 +3,8 @@
 import { useState, type ReactNode } from "react"
 import { motion, AnimatePresence, LayoutGroup, type PanInfo } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { Grid3X3, Layers, LayoutList } from "lucide-react"
+import { Grid3X3, Layers, LayoutList, ChevronLeft, ChevronRight } from "lucide-react"
+import { triggerHaptic } from "@/services/crypto"
 
 export type LayoutMode = "stack" | "grid" | "list"
 
@@ -51,11 +52,13 @@ export function MorphingCardStack({
     const { offset, velocity } = info
     const swipe = Math.abs(offset.x) * velocity.x
 
-    if (offset.x < -SWIPE_THRESHOLD || swipe < -1000) {
-      // Swiped left - go to next card
+    if (offset.x > SWIPE_THRESHOLD || swipe > 1000) {
+      // Swiped right - go to next card
+      triggerHaptic('light')
       setActiveIndex((prev) => (prev + 1) % cards.length)
-    } else if (offset.x > SWIPE_THRESHOLD || swipe > 1000) {
-      // Swiped right - go to previous card
+    } else if (offset.x < -SWIPE_THRESHOLD || swipe < -1000) {
+      // Swiped left - go to previous card
+      triggerHaptic('light')
       setActiveIndex((prev) => (prev - 1 + cards.length) % cards.length)
     }
     setIsDragging(false)
@@ -232,19 +235,48 @@ export function MorphingCardStack({
       </LayoutGroup>
 
       {layout === "stack" && cards.length > 1 && (
-        <div className="flex justify-center gap-1.5 pt-2">
-          {cards.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => setActiveIndex(index)}
-              className={cn(
-                "h-1.5 rounded-full transition-all",
-                index === activeIndex ? "w-4 bg-emerald-400" : "w-1.5 bg-white/20 hover:bg-white/40",
-              )}
-              aria-label={`Go to card ${index + 1}`}
-            />
-          ))}
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveIndex((prev) => (prev - 1 + cards.length) % cards.length);
+            }}
+            aria-label="Previous card"
+            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all border border-white/10"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            {cards.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setActiveIndex(index);
+                }}
+                className={cn(
+                  "h-1.5 rounded-full transition-all cursor-pointer",
+                  index === activeIndex ? "w-4 bg-emerald-400" : "w-1.5 bg-white/20 hover:bg-white/40",
+                )}
+                aria-label={`Go to card ${index + 1}`}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setActiveIndex((prev) => (prev + 1) % cards.length);
+            }}
+            aria-label="Next card"
+            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all border border-white/10"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
     </div>
