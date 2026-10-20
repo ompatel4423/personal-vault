@@ -14,6 +14,7 @@ export interface CardData {
   icon?: ReactNode
   color?: string
   tag?: string
+  image?: string
 }
 
 export interface MorphingCardStackProps {
@@ -178,7 +179,18 @@ export function MorphingCardStack({
                     backgroundColor: card.color || undefined,
                   }}
                 >
-                  <div className="flex items-start gap-3">
+                  {card.image && (
+                    <>
+                      <img
+                        src={card.image}
+                        alt={card.title}
+                        className="absolute inset-0 w-full h-full object-cover rounded-2xl"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/75 rounded-2xl pointer-events-none" />
+                    </>
+                  )}
+
+                  <div className="flex items-start gap-3 relative z-10">
                     {card.icon && (
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white border border-white/10 shadow-inner">
                         {card.icon}

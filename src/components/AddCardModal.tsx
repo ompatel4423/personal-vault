@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Plus, Check } from 'lucide-react';
+import { X, Plus, Check, Camera, ImageIcon } from 'lucide-react';
 import type { CardType, CardCategory, WalletCard } from '../types/wallet';
 import { triggerHaptic } from '../services/crypto';
+import { compressImage } from '../services/image';
 
 interface AddCardModalProps {
   onClose: () => void;
@@ -187,6 +188,8 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
   const [title, setTitle] = useState(TEMPLATES.bank_card.title);
   const [subtitle, setSubtitle] = useState(TEMPLATES.bank_card.subtitle);
   const [fields, setFields] = useState<Record<string, string>>(TEMPLATES.bank_card.details);
+  const [frontImage, setFrontImage] = useState<string | undefined>();
+  const [backImage, setBackImage] = useState<string | undefined>();
 
   const handleTypeSelect = (type: CardType) => {
     triggerHaptic('light');
@@ -204,6 +207,23 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
     }));
   };
 
+  const handlePhotoUpload = async (side: 'front' | 'back', e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    triggerHaptic('medium');
+    try {
+      const dataUrl = await compressImage(file);
+      if (side === 'front') {
+        setFrontImage(dataUrl);
+      } else {
+        setBackImage(dataUrl);
+      }
+    } catch {
+      onTriggerAlert('Photo Upload Failed', 'Please try a different image', 'warning');
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     triggerHaptic('success');
@@ -215,6 +235,8 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
       category: tmpl.category,
       title: title || tmpl.title,
       subtitle: subtitle || tmpl.subtitle,
+      frontImage,
+      backImage,
       colorScheme: {
         primary: tmpl.primary,
         secondary: '#000000',
@@ -334,6 +356,84 @@ export const AddCardModal: React.FC<AddCardModalProps> = ({
                 />
               </div>
             ))}
+          </div>
+
+          {/* Optional Real Card Photos */}
+          <div className="pt-2 border-t border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-mono uppercase text-white/50 block">
+                Real Physical Card Photos (Optional)
+              </label>
+              <span className="text-[10px] text-emerald-400/80 font-mono">Enables 3D Real Card Flip</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Front Photo */}
+              <div className="relative border border-dashed border-white/20 hover:border-emerald-400/60 transition-colors rounded-2xl p-3 flex flex-col items-center justify-center text-center bg-white/[0.02] overflow-hidden group">
+                {frontImage ? (
+                  <div className="relative w-full h-24 rounded-lg overflow-hidden group">
+                    <img src={frontImage} alt="Card Front" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setFrontImage(undefined)}
+                      className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-red-500/80 text-white rounded-full transition-colors"
+                      title="Remove Front Photo"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[9px] bg-black/60 rounded text-emerald-400 font-mono">
+                      Front Photo
+                    </span>
+                  </div>
+                ) : (
+                  <label className="w-full h-24 flex flex-col items-center justify-center cursor-pointer">
+                    <Camera className="w-6 h-6 text-white/40 mb-1 group-hover:text-emerald-400 group-hover:scale-110 transition-all" />
+                    <span className="text-[10px] font-mono text-white/70 font-semibold">Front Photo</span>
+                    <span className="text-[9px] font-mono text-white/40">Tap to upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => handlePhotoUpload('front', e)}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Back Photo */}
+              <div className="relative border border-dashed border-white/20 hover:border-emerald-400/60 transition-colors rounded-2xl p-3 flex flex-col items-center justify-center text-center bg-white/[0.02] overflow-hidden group">
+                {backImage ? (
+                  <div className="relative w-full h-24 rounded-lg overflow-hidden group">
+                    <img src={backImage} alt="Card Back" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setBackImage(undefined)}
+                      className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-red-500/80 text-white rounded-full transition-colors"
+                      title="Remove Back Photo"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[9px] bg-black/60 rounded text-emerald-400 font-mono">
+                      Back Photo
+                    </span>
+                  </div>
+                ) : (
+                  <label className="w-full h-24 flex flex-col items-center justify-center cursor-pointer">
+                    <ImageIcon className="w-6 h-6 text-white/40 mb-1 group-hover:text-emerald-400 group-hover:scale-110 transition-all" />
+                    <span className="text-[10px] font-mono text-white/70 font-semibold">Back Photo</span>
+                    <span className="text-[9px] font-mono text-white/40">Tap to upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => handlePhotoUpload('back', e)}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Submit */}

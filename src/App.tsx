@@ -335,6 +335,7 @@ export default function App() {
         <BackupModal
           onClose={() => setIsBackupModalOpen(false)}
           pin={currentPin}
+          onUpdatePin={(newPin) => setCurrentPin(newPin)}
           onRestoreCards={(newCards) => setCards(newCards)}
           onTriggerAlert={triggerAlert}
         />

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { X, Download, Upload, ShieldCheck, Check } from 'lucide-react';
-import { exportVaultEncryptedFile, importVaultEncryptedFile, setMasterPin } from '../services/storage';
+import { X, Download, Upload, ShieldCheck, Check, KeyRound, AlertCircle } from 'lucide-react';
+import { exportVaultEncryptedFile, importVaultEncryptedFile, changeMasterPin } from '../services/storage';
 import { triggerHaptic } from '../services/crypto';
 import type { WalletCard } from '../types/wallet';
 
 interface BackupModalProps {
   onClose: () => void;
   pin: string;
+  onUpdatePin?: (newPin: string) => void;
   onRestoreCards: (cards: WalletCard[]) => void;
   onTriggerAlert: (title: string, subtitle?: string, type?: 'success' | 'security' | 'warning' | 'info') => void;
 }
@@ -14,11 +15,15 @@ interface BackupModalProps {
 export const BackupModal: React.FC<BackupModalProps> = ({
   onClose,
   pin,
+  onUpdatePin,
   onRestoreCards,
   onTriggerAlert,
 }) => {
+  const [currentPinInput, setCurrentPinInput] = useState(pin);
   const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [pinChanged, setPinChanged] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
   const handleExport = async () => {
@@ -29,7 +34,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `iphone-vault-backup-${new Date().toISOString().slice(0, 10)}.vault`;
+      a.download = `om-vault-backup-${new Date().toISOString().slice(0, 10)}.vault`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -68,20 +73,46 @@ export const BackupModal: React.FC<BackupModalProps> = ({
 
   const handleChangePin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPin.length !== 4) return;
+    setPinError(null);
+
+    if (newPin.length !== 4) {
+      setPinError('New PIN must be 4 digits.');
+      triggerHaptic('error');
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      setPinError('New PIN and Confirm PIN do not match.');
+      triggerHaptic('error');
+      return;
+    }
+
     try {
+      const pinToVerify = currentPinInput || pin;
+      const ok = await changeMasterPin(pinToVerify, newPin);
+      if (!ok) {
+        setPinError('Current PIN is incorrect.');
+        triggerHaptic('error');
+        return;
+      }
+
       triggerHaptic('success');
-      await setMasterPin(newPin);
+      onUpdatePin?.(newPin);
       setPinChanged(true);
-      onTriggerAlert('Master PIN Changed', 'Stored in Secure Enclave', 'security');
+      setNewPin('');
+      setConfirmPin('');
+      setCurrentPinInput(newPin);
+      onTriggerAlert('PIN Updated', 'Vault re-encrypted with new AES-256 key', 'security');
       setTimeout(() => setPinChanged(false), 2500);
-    } catch {
+    } catch (err) {
+      console.error(err);
+      setPinError('Failed to update PIN. Please verify your current PIN.');
       triggerHaptic('error');
     }
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
       <div 
         className="w-full max-w-lg bg-[#0c0c10] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-[32px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
       >
@@ -109,16 +140,94 @@ export const BackupModal: React.FC<BackupModalProps> = ({
               <span>Zero-Knowledge Local Encryption</span>
             </div>
             <p className="text-[11px] text-white/70 leading-relaxed font-light">
-              Unlike Google Sheets or cloud spreadsheets where passport, Aadhaar, and bank card
-              numbers sit unencrypted in plaintext, your vault uses client-side <strong>AES-256-GCM</strong>.
-              Nothing leaves your iPhone without being ciphertext.
+              Your vault uses client-side <strong>AES-256-GCM</strong>.
+              When you change your passcode, all documents and card numbers are securely decrypted and re-encrypted with your new key.
             </p>
           </div>
+
+          {/* Change PIN section */}
+          <form onSubmit={handleChangePin} className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
+            <div className="flex items-center space-x-2 text-white font-semibold text-xs font-mono">
+              <KeyRound className="w-4 h-4 text-emerald-400" />
+              <span>Change Master Passcode</span>
+            </div>
+
+            <div className="space-y-2.5">
+              <div>
+                <label className="text-[10px] font-mono uppercase text-white/50 block mb-1">
+                  Current PIN
+                </label>
+                <input
+                  type="password"
+                  maxLength={4}
+                  value={currentPinInput}
+                  onChange={(e) => setCurrentPinInput(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Enter current 4-digit PIN"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-white/50 block mb-1">
+                    New 4-Digit PIN
+                  </label>
+                  <input
+                    type="password"
+                    maxLength={4}
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+                    placeholder="New PIN"
+                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-white/50 block mb-1">
+                    Confirm PIN
+                  </label>
+                  <input
+                    type="password"
+                    maxLength={4}
+                    value={confirmPin}
+                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Repeat PIN"
+                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
+                  />
+                </div>
+              </div>
+
+              {pinError && (
+                <div className="flex items-center space-x-1.5 text-rose-400 text-[11px] font-mono">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{pinError}</span>
+                </div>
+              )}
+
+              {pinChanged && (
+                <div className="flex items-center space-x-1.5 text-emerald-400 text-[11px] font-mono">
+                  <Check className="w-3.5 h-3.5 shrink-0" />
+                  <span>Passcode updated & documents re-encrypted!</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={newPin.length !== 4 || confirmPin.length !== 4}
+                className={`w-full py-2.5 rounded-xl text-xs font-mono font-semibold transition-all ${
+                  newPin.length === 4 && confirmPin.length === 4
+                    ? 'bg-emerald-400 text-black active:scale-98 shadow-[0_0_15px_rgba(52,211,153,0.3)]'
+                    : 'bg-white/10 text-white/40 cursor-not-allowed'
+                }`}
+              >
+                Update & Re-encrypt Vault
+              </button>
+            </div>
+          </form>
 
           {/* Export section */}
           <div className="space-y-2">
             <label className="text-[10px] font-mono uppercase text-white/50 block">
-              1. Encrypted Vault Backup
+              1. Download Encrypted Backup
             </label>
             <p className="text-xs text-white/60">
               Download an encrypted copy of your cards. You can save this file in your iCloud Drive or private storage.
@@ -154,40 +263,6 @@ export const BackupModal: React.FC<BackupModalProps> = ({
               </p>
             )}
           </div>
-
-          {/* Change PIN section */}
-          <form onSubmit={handleChangePin} className="space-y-3 pt-2">
-            <label className="text-[10px] font-mono uppercase text-white/50 block">
-              3. Update Master PIN
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="password"
-                maxLength={4}
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="New 4-digit PIN..."
-                className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-emerald-400"
-              />
-              <button
-                type="submit"
-                disabled={newPin.length !== 4}
-                className={`px-4 py-2.5 rounded-xl text-xs font-mono font-semibold transition-all ${
-                  newPin.length === 4
-                    ? 'bg-emerald-400 text-black active:scale-95'
-                    : 'bg-white/10 text-white/40 cursor-not-allowed'
-                }`}
-              >
-                Save PIN
-              </button>
-            </div>
-            {pinChanged && (
-              <p className="text-[11px] text-emerald-400 font-mono flex items-center space-x-1">
-                <Check className="w-3.5 h-3.5" />
-                <span>Master PIN successfully updated!</span>
-              </p>
-            )}
-          </form>
         </div>
       </div>
     </div>

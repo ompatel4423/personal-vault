@@ -77,6 +77,7 @@ export const CardStack: React.FC<CardStackProps> = ({
       icon: getCardIcon(c.type),
       color: c.colorScheme.primary,
       tag: c.category.toUpperCase(),
+      image: c.frontImage,
     };
   });
 

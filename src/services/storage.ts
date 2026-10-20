@@ -32,6 +32,23 @@ export async function setMasterPin(newPin: string): Promise<void> {
   }
 }
 
+export async function changeMasterPin(oldPin: string, newPin: string): Promise<boolean> {
+  const isValid = await verifyMasterPin(oldPin);
+  if (!isValid) return false;
+
+  // 1. Decrypt existing cards with oldPin
+  const cards = await loadCards(oldPin);
+
+  // 2. Encrypt existing cards with newPin
+  const newEncrypted = await encryptData(cards, newPin);
+  const newHash = await hashPin(newPin);
+
+  // 3. Atomically update storage
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(newEncrypted));
+  localStorage.setItem(PIN_HASH_KEY, newHash);
+  return true;
+}
+
 export async function verifyMasterPin(pin: string): Promise<boolean> {
   const storedHash = localStorage.getItem(PIN_HASH_KEY);
   if (!storedHash) return true; // first time

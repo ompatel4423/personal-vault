@@ -38,6 +38,8 @@ export interface WalletCard {
     type: 'image' | 'pdf';
     dataUrl: string;
   }[];
+  frontImage?: string; // Optional real front card photo (base64)
+  backImage?: string;  // Optional real back card photo (base64)
   favorite?: boolean;
   lastUsed?: string;
   createdAt: string;

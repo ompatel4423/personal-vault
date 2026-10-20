@@ -45,7 +45,10 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <div className="w-full flex flex-col space-y-4 pt-16 px-5 pb-3 z-20">
+    <div 
+      className="w-full flex flex-col space-y-4 px-5 pb-3 z-20"
+      style={{ paddingTop: 'max(env(safe-area-inset-top, 24px) + 38px, 105px)' }}
+    >
       {/* Top action row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2.5">

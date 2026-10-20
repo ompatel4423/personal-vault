@@ -109,14 +109,28 @@ export const CardItem: React.FC<CardItemProps> = ({
         <div
           className={`relative h-[190px] w-full rounded-[24px] bg-gradient-to-br ${card.colorScheme.gradient} p-5 flex flex-col justify-between overflow-hidden border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]`}
         >
-          {/* Subtle background luxury pattern / watermark */}
-          <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-white/[0.04] pointer-events-none blur-xl" />
-          <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-            {card.type === 'passport' && <Plane className="w-24 h-24 text-amber-300" />}
-            {card.type === 'aadhaar' && <Fingerprint className="w-24 h-24 text-emerald-300" />}
-            {card.type === 'bank_card' && <CreditCard className="w-24 h-24 text-white" />}
-            {card.type === 'marksheet' && <Award className="w-24 h-24 text-indigo-300" />}
-          </div>
+          {/* If real photo exists, render as card background */}
+          {card.frontImage ? (
+            <>
+              <img
+                src={card.frontImage}
+                alt={card.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/60 pointer-events-none" />
+            </>
+          ) : (
+            <>
+              {/* Subtle background luxury pattern / watermark */}
+              <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-white/[0.04] pointer-events-none blur-xl" />
+              <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+                {card.type === 'passport' && <Plane className="w-24 h-24 text-amber-300" />}
+                {card.type === 'aadhaar' && <Fingerprint className="w-24 h-24 text-emerald-300" />}
+                {card.type === 'bank_card' && <CreditCard className="w-24 h-24 text-white" />}
+                {card.type === 'marksheet' && <Award className="w-24 h-24 text-indigo-300" />}
+              </div>
+            </>
+          )}
 
           {/* Top Row: Title, Subtitle, & Badge */}
           <div className="flex items-start justify-between z-10">
